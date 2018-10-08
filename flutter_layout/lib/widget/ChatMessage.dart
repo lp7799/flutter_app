@@ -1,6 +1,9 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:flutter_layout/Urls/EventObject.dart';
+import 'package:flutter_layout/Urls/Shared.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatMessage extends StatefulWidget {
   ChatMessage({this.text,this.newMessage,this.animationController});
@@ -12,22 +15,33 @@ class ChatMessage extends StatefulWidget {
   State<StatefulWidget> createState() {
    return new ChatMessageState(text,newMessage,animationController);
   }
-
   }
 class ChatMessageState extends State<ChatMessage> {
-  var _name='张三';
+  var _name='M';
   String text;
   String sendMessage;
+  String username= "GG";
   final AnimationController animationController;
   ChatMessageState(this.text, this.sendMessage, this.animationController);
   @override
   void initState() {
-    // TODO: implement initState
+    getUserInfo();
     super.initState();
+  }
+
+
+  getUserInfo() async {
+    var name;
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    name = sp.getString(Shared.SP_USER_NAME);
+    print("===="+name);
+    setState(() {
+      username = name;
+    });
   }
   @override
   Widget build(BuildContext context) {
-    print("------text:$text----message:$sendMessage--------------");
+
     return new Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -51,7 +65,7 @@ class ChatMessageState extends State<ChatMessage> {
               child: new Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
-                  new Text(_name, style: Theme
+                  new Text(username, style: Theme
                       .of(context)
                       .textTheme
                       .subhead),
@@ -64,7 +78,7 @@ class ChatMessageState extends State<ChatMessage> {
             ),
             new Container(
               margin: const EdgeInsets.only(left: 16.0),
-              child: new CircleAvatar(child: new Text(_name[0])),
+              child: new CircleAvatar(child: new Text(username[0])),
             )
           ],
         ),
@@ -83,7 +97,7 @@ class ChatMessageState extends State<ChatMessage> {
           children: <Widget>[
             new Container(
               margin: const EdgeInsets.only(right: 16.0),
-              child: new CircleAvatar(child: new Text(_name[0])),
+              child: new CircleAvatar(child: new Text(_name)),
             ),
             new Expanded(
               child: new Column(

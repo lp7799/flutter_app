@@ -1,7 +1,7 @@
-import 'dart:_http';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:banner_view/banner_view.dart';
@@ -27,17 +27,18 @@ class IndexState extends State<Index> {
     'images/t.jpg',
     'images/ts.jpg',
   ];
+
   ScrollController _controller = new ScrollController();
   IndexState() {
     _controller.addListener(() {
       var maxScroll = _controller.position.maxScrollExtent;
       var pixels = _controller.position.pixels;
       if (maxScroll == pixels && list.length < 20) {
-        // scroll to bottom, get next page data
         print("load more ... ");
         page++;
         getNewList();
       }
+
     });
   }
   @override
@@ -73,6 +74,27 @@ class IndexState extends State<Index> {
     getNewList();
     return null;
   }
+
+   _handleScrollNotification(ScrollNotification notification) {
+    if(notification is ScrollEndNotification){
+      //下滑到最底部
+      if(notification.metrics.extentAfter==0.0){
+        page +=1;
+        getNewList();
+        articleListView();
+      }
+      //滑动到最顶部
+      if(notification.metrics.extentBefore==0.0){
+        page +=1;
+        getNewList();
+        articleListView();
+      }
+    }
+    return false;
+  }
+
+
+
   List<Widget> _banners() {
     List<Widget> list = new List<Widget>();
     for (int i = 0; i < img.length; i++) {
@@ -83,6 +105,7 @@ class IndexState extends State<Index> {
   Image getImgs(String path) {
     return new Image.asset(path, fit: BoxFit.cover,);
   }
+
   getNewList() async {
     var httpClient = new HttpClient();
     var articleUrl = "${Urls.INDEX}$page/json";

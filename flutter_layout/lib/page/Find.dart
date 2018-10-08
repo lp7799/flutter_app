@@ -1,7 +1,10 @@
 
-import 'dart:_http';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_layout/Urls/EventObject.dart';
+import 'package:flutter_layout/Urls/Shared.dart';
+import 'package:flutter_layout/page/Login.dart';
 import 'package:flutter_layout/widget/ChatMessage.dart';
 
 class Find extends StatefulWidget{
@@ -15,26 +18,62 @@ class FindState extends State<Find> with  TickerProviderStateMixin{
   final List<ChatMessage> _messages = <ChatMessage>[];
   final TextEditingController _textController = new TextEditingController();
   var newMessage;
+  bool isLogin = false;
+  @override
+  void initState() {
+    super.initState();
+    Shared.eventBus.on<EventObject>().listen((data){
+      if(this.mounted){
+          if(data.key == Shared.EVENT_LOGIN){
+            setState(() {
+              isLogin = true;
+            });
+          }else if(data.key == Shared.EVENT_LOGOUT){
+            setState(() {
+              isLogin = false;
+            });
+
+          }
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return new Column(
-     mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        new Flexible(
+    if(isLogin) {
+      return new Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          new Flexible(
             child: new ListView.builder(
-            padding: new EdgeInsets.all(8.0),
-            itemBuilder: (_, int index) => _messages[index],
-            itemCount: _messages.length,
+              padding: new EdgeInsets.all(8.0),
+              itemBuilder: (_, int index) => _messages[index],
+              itemCount: _messages.length,
+            ),
+          ),
+          new Divider(height: 1.0),
+          new Container(
+            decoration: new BoxDecoration(
+                color: Theme
+                    .of(context)
+                    .cardColor),
+            child: _buildTextComposer(), //modified
+          ),
+        ],
+      );
+    }else{
+      return new GestureDetector(
+        child: new Center(
+          child: new Text("少侠去登录后来调戏我吧",
+          style: new TextStyle(
+            fontSize: 24.0
+          ),
           ),
         ),
-        new Divider(height: 1.0),
-        new Container(
-          decoration: new BoxDecoration(
-              color: Theme.of(context).cardColor),
-          child: _buildTextComposer(),                       //modified
-        ),
-      ],
-    );
+        onTap: (){
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) =>new Login()));
+        },
+      );
+    }
   }
   //输入框和一个带图片的button
   Widget _buildTextComposer() {
@@ -83,13 +122,11 @@ class FindState extends State<Find> with  TickerProviderStateMixin{
   }
   getChat(String s) async {
     var _url = "http://open.drea.cc/chat/get?keyWord=$s&userName=drea_bbs";
-    print("-----_url---------"+_url);
     var httpClient = new HttpClient();
     var request = await httpClient.getUrl(Uri.parse(_url));
     var response = await request.close();
     if (response.statusCode == HttpStatus.ok) {
       var jsonBody = await response.transform(utf8.decoder).join();
-      print("---------Chat---------------" + jsonBody);
       var data = json.decode(jsonBody);
       var map = data['data'];
       setState(() {
@@ -98,11 +135,11 @@ class FindState extends State<Find> with  TickerProviderStateMixin{
         }else{
           newMessage= data['message'];
         }
-        print("---------newMessage---------"+newMessage);
       });
       _handleSubmitted(_textController.text);//异步操作不能更新数据 所以放这
     }
   }
+
   @override
   void dispose() {
     for (ChatMessage message in _messages)

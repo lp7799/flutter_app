@@ -1,4 +1,6 @@
 
+import 'package:flutter_layout/Urls/AppCookie.dart';
+import 'package:flutter_layout/Urls/EventObject.dart';
 import 'package:flutter_layout/Urls/Shared.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
@@ -95,13 +97,7 @@ class LoginState extends State<Login> {
                           // save()：保存Form下的每个TextField
                           _formKey.currentState.save();
                           getLogin(_lastName,_psssword);
-                            if(map['errorCode'] == 0){
-                              showCenterShortToast("登录成功");
-                              Navigator.pop(context,"login");
-                            }else{
-                              var s = "登录失败："+map['errorMsg'];
-                              showCenterShortToast(s);
-                            }
+
                         })
                   ],
                 )
@@ -110,6 +106,16 @@ class LoginState extends State<Login> {
          ),
        ),
      );
+  }
+  getStaet(Map map){
+    if(map['errorCode'] == 0){
+      showCenterShortToast("登录成功");
+      Shared.eventBus.fire(EventObject(Shared.EVENT_LOGIN,''));
+      Navigator.pop(context,"login");
+    }else{
+      var s = "登录失败："+map['errorMsg'];
+      showCenterShortToast(s);
+    }
   }
   getLogin(String name,String pwd ) async{
     var dio = new Dio();
@@ -120,8 +126,19 @@ class LoginState extends State<Login> {
     });
     Response response = await dio.post("",data:formData);
     map = response.data;
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    //保存cookie
+   var  cookie = response.headers['set-cookie'];
+    if(cookie !=null){
+      AppCookie.APP_COOKIE = cookie.toString();
+      print('--- AppCookie.APP_COOKIE---'+ AppCookie.APP_COOKIE.toString());
+      await sp.setString(AppCookie.COOKIE,cookie.toString());
+      print("保存cookie成功$cookie");
+      getStaet(response.data);
+    }
+
+    //保存用户信息
     if(response.data != null){
-      SharedPreferences sp = await SharedPreferences.getInstance();
       await sp.setBool(Shared.SP_IS_LOGIN, true);
       await sp.setString(Shared.SP_USER_NAME, map['data']['username']);
       await sp.setString(Shared.SP_PWD, map['data']['password']);
@@ -131,7 +148,7 @@ class LoginState extends State<Login> {
     Fluttertoast.showToast(
         msg:s,
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
+        gravity: ToastGravity.BOTTOM,
         timeInSecForIos: 1
     );
   }

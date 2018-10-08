@@ -1,12 +1,31 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_layout/ImgPage.dart';
+import 'package:flutter_layout/Urls/AppCookie.dart';
+import 'package:flutter_layout/Urls/EventObject.dart';
+
+import 'package:flutter_layout/Urls/Shared.dart';
 import 'package:flutter_layout/page/Find.dart';
 import 'package:flutter_layout/page/Index.dart';
 import 'package:flutter_layout/page/Mywode.dart';
 import 'package:flutter_layout/widget/MyDrawer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 //入口
-void main() => runApp(new MyApp());
+void main(){
+
+  SharedPreferences.getInstance().then((prefs) {
+       AppCookie.APP_COOKIE = prefs.getString(AppCookie.COOKIE);
+    if(AppCookie.APP_COOKIE == null){
+      Shared.eventBus.fire(EventObject(Shared.EVENT_LOGOUT,""));
+      AppCookie.APP_COOKIE='';
+    }else{
+      Shared.eventBus.fire(EventObject(Shared.EVENT_LOGIN,""));
+    }
+  });
+
+  return runApp(new MyApp());
+
+}
 
 class MyApp extends StatefulWidget {
 
@@ -21,10 +40,18 @@ class MyAppState extends State<MyApp>{
   var tabImages;
   var appBarTitles = ['首页', '福利', '谈天说地', '我的直播'];
   var _body;
+  String username;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    getUserInfo();
+  }
+
   @override
   Widget build(BuildContext context) {
     initDate();
-
     return new MaterialApp(
       theme: new ThemeData(
         primaryColor: Colors.purple
@@ -60,10 +87,19 @@ class MyAppState extends State<MyApp>{
           },
 
         ),
-        drawer: new MyDrawer(),
+        drawer: new MyDrawer(usename:username),
       ),
 
     );
+  }
+
+  getUserInfo() async{
+    String name;
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    name = sp.getString(Shared.SP_USER_NAME);
+    setState(() {
+      username = name;
+    });
   }
 
 

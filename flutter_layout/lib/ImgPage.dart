@@ -1,11 +1,10 @@
-import 'dart:_http';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_layout/Img.dart';
-
 
 
 class ImgPage extends StatefulWidget {
@@ -15,7 +14,7 @@ class ImgPage extends StatefulWidget {
     return new ImaPageState();
   }
 }
-class ImaPageState  extends State<ImgPage> {
+class ImaPageState  extends State<ImgPage> with AutomaticKeepAliveClientMixin{
   ScrollController _controller = new ScrollController();
   List<Img> newimg = [];
   int cot=0;
@@ -42,14 +41,17 @@ class ImaPageState  extends State<ImgPage> {
 
   @override
   Widget build(BuildContext context) {
-    return new Center(
-      child: new  RefreshIndicator(
-             child: new ListView(
+    return
+        new  RefreshIndicator(
+             child: new GridView.count(
+               crossAxisCount: 2,
+              mainAxisSpacing: 1.0,
+
           controller: _controller,
           children: imgs(),
         ),
         onRefresh: _pullToRefresh,
-        ),
+
     );
   }
 
@@ -74,10 +76,8 @@ class ImaPageState  extends State<ImgPage> {
           child: imgurl,
           color: Colors.white,
         );
-        var pad = new Padding(padding: EdgeInsets.all(12.0),
-        child: card,
-        );
-        widgets.add(pad);
+
+        widgets.add(card);
       }
     }
     return widgets;
@@ -90,6 +90,7 @@ class ImaPageState  extends State<ImgPage> {
     var response = await request.close();
     if (response.statusCode == HttpStatus.OK) {
       var jsonBody = await response.transform(utf8.decoder).join();
+
       print(jsonBody);
       setState(() {
         newimg = Img.decodeData(jsonBody);
@@ -111,4 +112,8 @@ class ImaPageState  extends State<ImgPage> {
     }
     return false;
   }
+
+  // TODO: implement wantKeepAlive
+  @override
+  bool get wantKeepAlive => true;
 }

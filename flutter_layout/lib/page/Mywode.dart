@@ -8,53 +8,79 @@ class Mywode extends StatefulWidget{
   }
 
 }
-
 class MywodeState  extends State<Mywode>{
-  TargetPlatform _platform;
   VideoPlayerController _controller;
   bool isShow = true;
+  var img = [
+    'images/da.jpg',
+    'images/DVa.jpg',
+    'images/lk.jpg',
+    'images/sw.jpg',
+    'images/t.jpg',
+    'images/ts.jpg',
+  ];
   @override
   void initState() {
     super.initState();
     _controller = new VideoPlayerController.network(
-      'http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8',
+      'http://live-cdn.xzxwhcb.com/hls/sn88wrar.m3u8',
     );
-
   }
   @override
   Widget build(BuildContext context) {
     return new Column(
       children: <Widget>[
-        new IconButton(icon: new Icon(Icons.autorenew),
-            onPressed: (){
-              setState(() {
-                _controller.initialize();
-                print("----"+isShow.toString());
-               if(isShow){
-                 isShow = false;
-               }else{
-                 isShow = true;
-               }
-              });
-            }),
-        new Expanded(
+        new Container(
             child: new Chewie(
               _controller,
                showControls: isShow,
-              autoPlay:  true,
-              // materialProgressColors: new ChewieProgressColors(
-              //   playedColor: Colors.red,
-              //   handleColor: Colors.blue,
-              //   backgroundColor: Colors.grey,
-              //   bufferedColor: Colors.lightGreen,
-              // ),
-              // placeholder: new Container(
-              //   color: Colors.grey,
-              // ),
-              // autoInitialsszqaQize: true,
+              autoInitialize: true,
+              autoPlay: false,
             ),
+        ),
+        new IconButton(icon: new Icon(Icons.autorenew),
+            onPressed: (){
+              setState(() {
+                if(isShow){
+                  isShow = false;
+                }else{
+                  isShow = true;
+                }
+              });
+            }),
+        Expanded(
+            child:SafeArea(
+                top: false,
+                bottom: false,
+                child: GridView.count(
+                  crossAxisCount:3,
+                  mainAxisSpacing: 4.0,
+                  crossAxisSpacing: 4.0,
+                  padding: const EdgeInsets.all(4.0),
+                  childAspectRatio: 1.3,
+                  children:
+                    _banners()
+                )
+            )
         ),
       ],
     );
+  }
+
+  List<Widget> _banners() {
+    List<Widget> list = new List<Widget>();
+    for (int i = 0; i < img.length; i++) {
+      list.add(getImgs(img[i]));
+    }
+    return list;
+  }
+  Image getImgs(String path) {
+    return new Image.asset(path, fit: BoxFit.cover,);
+  }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _controller.dispose();
+    super.dispose();
   }
 }
